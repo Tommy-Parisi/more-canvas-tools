@@ -1,6 +1,6 @@
-import { ALWAYS, DOMCONTENTLOADED, LOAD } from "userscripter/lib/environment";
+import { DOMCONTENTLOADED, LOAD } from "userscripter/lib/environment";
 import { Operation, operation } from "userscripter/lib/operations";
-import { isOnAssignment, isOnPeoplePage, isOnSpeedGrader, hasLeftNavigation, isOnCourseHome, hasGlobalNavigation, isOnAssignmentList } from "./canvas/page_checks";
+import { isOnAssignment, isOnPeoplePage, isOnSpeedGrader, hasLeftNavigation, isOnCourseHome, hasGlobalNavigation, isOnAssignmentList, isOnCalendar } from "./canvas/page_checks"; // isOnCalendar used in inject Day button operation
 import { loadUserActivityReport } from "./reports/user_activity";
 import { injectGraderLabel } from "./utilities/grader_label";
 import { injectLimitEnrollmentButton } from "./utilities/limit_enrollment";
@@ -9,6 +9,9 @@ import { injectListUngradedButton } from "./reports/ungraded_report";
 import { injectRecentlyEnrolled } from "./reports/recently_enrolled";
 import { injectSearchButton } from "./utilities/search_menu";
 import { injectBulkAssignmentDatesButton } from "./utilities/bulk_dates_csv";
+import { logCurrentUser } from "./utilities/logCurrentUser";
+import { loadDailyCalendarView } from "./utilities/loadDailyCalendarView";
+import { log } from "userscripter/lib/log";
 
 const OPERATIONS: ReadonlyArray<Operation<any>> = [
     operation({
@@ -96,6 +99,28 @@ const OPERATIONS: ReadonlyArray<Operation<any>> = [
         },
         action: (e) => {
             injectBulkAssignmentDatesButton(e.moreSettingsDropdown);
+        },
+        deferUntil: DOMCONTENTLOADED
+    }),
+    operation({
+        description: "log current user info from Canvas API",
+        condition: () => hasGlobalNavigation,
+        dependencies: {},
+        action: () => {
+            logCurrentUser();
+        },
+        deferUntil: DOMCONTENTLOADED
+    }),
+    operation({
+        description: "inject Day button into calendar toolbar",
+        condition: () => hasGlobalNavigation,
+        dependencies: {
+            calendarHeader: "#calendar_header"
+        },
+        action: () => {
+            console.log("[more-canvas-tools] pathname:", document.location.pathname, "isOnCalendar:", isOnCalendar);
+            if (!isOnCalendar) return;
+            loadDailyCalendarView();
         },
         deferUntil: DOMCONTENTLOADED
     })

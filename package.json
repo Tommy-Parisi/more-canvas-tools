@@ -3,9 +3,9 @@
   "homepage": "https://UD-CIS-Teaching.github.io/more-canvas-tools/",
   "scripts": {
     "build-webpack-config": "tsc -p tsconfig.webpack.json",
-    "build-userscript": "webpack --config .userscripter-temp/webpack.config.js",
+    "build-userscript": "NODE_OPTIONS=--openssl-legacy-provider webpack --config .userscripter-temp/webpack.config.js",
     "build": "npm run clean && npm run build-webpack-config && npm run build-userscript && npm run clean",
-    "watch-userscript": "webpack --config .userscripter-temp/webpack.config.js --watch",
+    "watch-userscript": "NODE_OPTIONS=--openssl-legacy-provider webpack --config .userscripter-temp/webpack.config.js --watch",
     "watch": "npm run clean && npm run build-webpack-config && npm run watch-userscript && npm run clean",
     "clean": "rimraf .userscripter-temp",
     "predeploy": "set USERSCRIPTER_MODE=production&& set USERSCRIPTER_VERBOSE=true&& npm run build",

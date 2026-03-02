@@ -22,6 +22,8 @@ export const isOnDashboard = document.location.pathname === "/";
 
 export const isOnCanvaDocs = /canvadocs.instructure.com/.test(document.location.hostname);
 
-export const hasLeftNavigation = !isOnSpeedGrader && !isOnCanvaDocs && !isOnDashboard && !isOnCourseList;
+export const isOnCalendar = pathMatches(SITE.PATH.CALENDAR);
+
+export const hasLeftNavigation = !isOnSpeedGrader && !isOnCanvaDocs && !isOnDashboard && !isOnCourseList && !isOnCalendar;
 
 export const hasGlobalNavigation = !isOnCanvaDocs;
