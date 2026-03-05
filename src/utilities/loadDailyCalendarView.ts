@@ -1,3 +1,6 @@
+import { startDialog } from "../canvas/dialog";
+import { openImportClassesDialog } from "./import_classes";
+
 const DAY_BUTTON_HTML = `<button type="button" id="cwu-day" class="btn calendar-button" role="tab" aria-selected="false" aria-controls="calendar-app" tabindex="-1">Day</button>`;
 
 function injectDayButton() {
@@ -39,10 +42,22 @@ function injectDayButton() {
     });
 }
 
+function enableNowIndicator(){
+    const jq = (window as any).jQuery;
+    const $cal = jq('.calendar.fc');
+    if ($cal.fullCalendar('option', 'nowIndicator')) return; // already enabled
+
+    try {
+        $cal.fullCalendar('option', 'nowIndicator', true);
+    } catch (e) {
+        console.error("Failed to enable now indicator on calendar:", e);
+    }
+}
+ // bug : when on daily view, weekly view button doesnt work 
 export function loadDailyCalendarView() {
-    // #agenda is rendered by React after DOMContentLoaded — wait for it
     if (document.getElementById('week')) {
         injectDayButton();
+        enableNowIndicator();
         return;
     }
 
@@ -50,9 +65,79 @@ export function loadDailyCalendarView() {
         if (document.getElementById('week')) {
             observer.disconnect();
             injectDayButton();
+            enableNowIndicator();
         }
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
 }
+
+// --- Import Classes button ---
+
+function injectImportClassesButton() {
+    if (document.getElementById('cwu-import-classes')) return;
+
+    const createLink = document.getElementById('create_new_event_link');
+    if (!createLink || !createLink.parentElement) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'cwu-import-classes';
+    btn.className = 'btn';
+    btn.type = 'button';
+    btn.textContent = 'Import classes';
+
+    // Place it just to the left of "Create New Event"
+    createLink.parentElement.insertBefore(btn, createLink);
+
+    btn.addEventListener('click', () => {
+        openImportClassesDialog();
+    });
+}
+
+// Ensure the Import button appears when the header actions render
+(() => {
+    const tryInject = () => injectImportClassesButton();
+    if (document.getElementById('create_new_event_link')) {
+        tryInject();
+        return;
+    }
+    const obs = new MutationObserver(() => {
+        if (document.getElementById('create_new_event_link')) {
+            obs.disconnect();
+            tryInject();
+        }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+})();
+
+// Client-side colorizing: color events by course id prefix in title like "[12345]"
+function hashColor(id: number): string {
+    // simple deterministic palette
+    const colors = ['#2b8a3e', '#1e6bb8', '#b85c1e', '#8a2be2', '#d6336c', '#0ca678', '#0b7285'];
+    return colors[id % colors.length];
+}
+
+function colorizeEventsByCoursePrefix() {
+    const nodes = document.querySelectorAll('.fc-event, .fc-time-grid-event');
+    nodes.forEach((n: any) => {
+        const titleNode = n.querySelector('.fc-title') || n.querySelector('.fc-content');
+        if (!titleNode) return;
+        const m = /\[(\d+)\]/.exec(titleNode.textContent || '');
+        if (!m) return;
+        const color = hashColor(parseInt(m[1], 10));
+        n.style.backgroundColor = color;
+        n.style.borderColor = color;
+    });
+}
+
+// Observe calendar mutations to (re)apply colors
+(() => {
+    const cal = document.querySelector('.calendar.fc');
+    if (!cal) return;
+    const obs = new MutationObserver(() => colorizeEventsByCoursePrefix());
+    obs.observe(cal, { childList: true, subtree: true });
+    colorizeEventsByCoursePrefix();
+})();
+
+
 
