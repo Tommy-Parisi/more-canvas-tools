@@ -40,6 +40,13 @@ function injectDayButton() {
             dayBtn.setAttribute('tabindex', '-1');
         });
     });
+
+    document.getElementById('week')?.addEventListener('click', () => {
+        try { (window as any).jQuery('.calendar.fc').fullCalendar('changeView', 'agendaWeek'); } catch {}
+    });
+    document.getElementById('month')?.addEventListener('click', () => {
+        try { (window as any).jQuery('.calendar.fc').fullCalendar('changeView', 'month'); } catch {}
+    });
 }
 
 function enableNowIndicator(){
@@ -53,7 +60,7 @@ function enableNowIndicator(){
         console.error("Failed to enable now indicator on calendar:", e);
     }
 }
- // bug : when on daily view, weekly view button doesnt work 
+
 export function loadDailyCalendarView() {
     if (document.getElementById('week')) {
         injectDayButton();
@@ -63,7 +70,6 @@ export function loadDailyCalendarView() {
 
     const observer = new MutationObserver(() => {
         if (document.getElementById('week')) {
-            observer.disconnect();
             injectDayButton();
             enableNowIndicator();
         }
@@ -86,7 +92,6 @@ function injectImportClassesButton() {
     btn.type = 'button';
     btn.textContent = 'Import classes';
 
-    // Place it just to the left of "Create New Event"
     createLink.parentElement.insertBefore(btn, createLink);
 
     btn.addEventListener('click', () => {
@@ -94,25 +99,26 @@ function injectImportClassesButton() {
     });
 }
 
-// Ensure the Import button appears when the header actions render
 (() => {
-    const tryInject = () => injectImportClassesButton();
-    if (document.getElementById('create_new_event_link')) {
-        tryInject();
-        return;
-    }
-    const obs = new MutationObserver(() => {
-        if (document.getElementById('create_new_event_link')) {
-            obs.disconnect();
-            tryInject();
+    const ensure = () => {
+        if (!document.getElementById('cwu-import-classes') && document.getElementById('create_new_event_link')) {
+            injectImportClassesButton();
         }
-    });
+        if (!document.getElementById('cwu-day') && document.getElementById('week')) {
+            injectDayButton();
+        }
+    };
+    ensure();
+    let timeout: any;
+    const debouncedEnsure = () => { clearTimeout(timeout); timeout = setTimeout(ensure, 150); };
+    const obs = new MutationObserver(debouncedEnsure);
     obs.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('hashchange', ensure);
+    window.addEventListener('popstate', ensure);
 })();
 
-// Client-side colorizing: color events by course id prefix in title like "[12345]"
+// course id prefix "[12345]"
 function hashColor(id: number): string {
-    // simple deterministic palette
     const colors = ['#2b8a3e', '#1e6bb8', '#b85c1e', '#8a2be2', '#d6336c', '#0ca678', '#0b7285'];
     return colors[id % colors.length];
 }
@@ -130,7 +136,6 @@ function colorizeEventsByCoursePrefix() {
     });
 }
 
-// Observe calendar mutations to (re)apply colors
 (() => {
     const cal = document.querySelector('.calendar.fc');
     if (!cal) return;

@@ -115,7 +115,7 @@ const OPERATIONS: ReadonlyArray<Operation<any>> = [
         description: "inject Day button into calendar toolbar",
         condition: () => hasGlobalNavigation,
         dependencies: {
-            calendarHeader: "#calendar_header"
+            body: "body"
         },
         action: () => {
             console.log("[more-canvas-tools] pathname:", document.location.pathname, "isOnCalendar:", isOnCalendar);
