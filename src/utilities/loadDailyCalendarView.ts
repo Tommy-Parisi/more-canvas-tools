@@ -143,6 +143,3 @@ function colorizeEventsByCoursePrefix() {
     obs.observe(cal, { childList: true, subtree: true });
     colorizeEventsByCoursePrefix();
 })();
-
-
-

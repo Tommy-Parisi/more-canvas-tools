@@ -25,6 +25,7 @@ We are always working on new features, but here's what we have so far:
 3. [Spread Grade](#spread-grade): A particular tool for the speedgrader that replicates grades to other group members (based on email addresses found in the submitted Word document). Mostly only for courses that use Word Documents.
 4. [List Ungraded Submissions](#list-ungraded-submissions): A tool to list all ungraded submissions in a course.
 5. [List Recently Enrolled Users](#list-recently-enrolled-users): A tool to list all users who have recently enrolled in a course.
+6. [Daily Calendar View & Class Import](#daily-calendar-view--class-import): Adds a Day view button to the Calendar, and an Import classes dialog for setting up recurring course events.
 
 ## Activity Report
 
@@ -120,7 +121,51 @@ You can adjust the delimiter and quote for how the file is generated, but that s
 
 The `Save Draft` and `Load Draft` buttons allow you to store/restore the current version of the **PREVIEW AREA** (not the textarea) in your localStorage. This is useful for saving your work in progress, if you need to come back to it later.
 
-Finally, the `Preview and Publish Dates to Course` button will take the contents of the preview area and check how they will be applied to this course. It will show you a list of assignments that will be updated, and then you can click the `Apply Changes` button to actually apply the changes. This will update the assignments in the course with the new dates. Or you can click `Cancel Changes` to go back to editing the dates.
+Finally, the `Preview and Publish Dates to Course` button will take the contents of the preview area and check how they will be applied to this course. It will show you a list of assignments that will be updated, and then you can click the `Apply Changes` button to actually apply the changes. This will update the assignments in the course with the new dates. Or you can click `Cancel Changes` to go back to 
+editing the dates.
+
+
+## Daily Calendar View & Class Import
+
+Two new controls are added to the Calendar page.
+
+### Day View Button
+
+A **Day** button is injected into the calendar toolbar, to the left of the existing Week/Month/Agenda buttons. Clicking it switches the calendar to a single-day agenda view. The current time is shown by a 
+
+![Calendar with Day button and Import classes button](docs/calendar_day_view.png)
+
+The Day, Week, Month, and Agenda buttons all work correctly when switching between views.
+
+### Import Classes *(coming soon)*
+
+An **Import classes** button appears to the right of the view-switcher buttons. Clicking it opens a dialog where you can configure a recurring schedule for your enrolled courses and preview what events would be created.
+
+![Import classes dialog](docs/import_classes_dialog.png)
+
+The dialog lets you:
+- Choose a meeting pattern: **Mon/Wed/Fri (55 min)**, **Tue/Thu (80 min)**, or **Custom**
+- Select specific days of the week and adjust duration, start time, and location
+- Set a start date and end date for the recurring events
+- Browse and select which enrolled courses to import
+
+> **Note:** Event creation is not yet available. The dialog can be opened and configured, but the "Create events" button is disabled while this feature is in development.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Development Environment Installation
 
