@@ -131,7 +131,7 @@ Two new controls are added to the Calendar page.
 
 ### Day View Button
 
-A **Day** button is injected into the calendar toolbar, to the left of the existing Week/Month/Agenda buttons. Clicking it switches the calendar to a single-day agenda view. The current time is shown by a 
+A **Day** button is injected into the calendar toolbar, to the left of the existing Week/Month/Agenda buttons. Clicking it switches the calendar to a single-day agenda view. The current time is shown by a red **Now Indicator**, helping students navigate the day with ease. 
 
 ![Calendar with Day button and Import classes button](docs/calendar_day_view.png)
 
