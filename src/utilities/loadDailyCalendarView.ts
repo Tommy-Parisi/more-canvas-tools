@@ -1,7 +1,4 @@
-import { startDialog } from "../canvas/dialog";
 import { openManageClassesDialog } from "./import_classes";
-
-const DAY_BUTTON_HTML = `<button type="button" id="cwu-day" class="btn calendar-button" role="tab" aria-selected="false" aria-controls="calendar-app" tabindex="-1">Day</button>`;
 
 function injectDayButton() {
     if (document.getElementById('cwu-day')) return; // already injected
@@ -31,6 +28,7 @@ function injectDayButton() {
         dayBtn.setAttribute('aria-selected', 'true');
         dayBtn.setAttribute('tabindex', '0');
         (window as any).jQuery('.calendar.fc').fullCalendar('changeView', 'agendaDay');
+        window.setTimeout(() => refreshNowIndicator(), 100);
     });
 
     ['week', 'month', 'agenda'].forEach(id => {
@@ -38,6 +36,7 @@ function injectDayButton() {
             dayBtn.classList.remove('active');
             dayBtn.setAttribute('aria-selected', 'false');
             dayBtn.setAttribute('tabindex', '-1');
+            window.setTimeout(() => refreshNowIndicator(), 100);
         });
     });
 
@@ -62,29 +61,167 @@ function injectDayButtonWithRetry() {
     injectDayButton();
 }
 
-function enableNowIndicator(){
+let nowIndicatorRefreshTimer: number | undefined;
+
+function clearCustomNowIndicator() {
+    document.querySelectorAll('.cwu-now-indicator-line, .cwu-now-indicator-dot').forEach((el) => el.remove());
+}
+
+function ensureNowIndicatorStyles() {
+    if (document.getElementById('cwu-now-indicator-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'cwu-now-indicator-styles';
+    style.textContent = `
+        .cwu-now-indicator-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e03131;
+            pointer-events: none;
+            z-index: 7;
+        }
+
+        .cwu-now-indicator-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #e03131;
+            pointer-events: none;
+            z-index: 8;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function parseMinutes(value: unknown, fallback: number): number {
+    if (typeof value === 'string') {
+        const [h = '0', m = '0', s = '0'] = value.split(':');
+        return parseInt(h, 10) * 60 + parseInt(m, 10) + parseInt(s, 10) / 60;
+    }
+    if (typeof value === 'number') {
+        return value * 60;
+    }
+    return fallback;
+}
+
+function renderFallbackNowIndicator() {
+    clearCustomNowIndicator();
+    ensureNowIndicatorStyles();
+
     const jq = (window as any).jQuery;
+    if (!jq?.fn?.fullCalendar) return;
+
     const $cal = jq('.calendar.fc');
-    if ($cal.fullCalendar('option', 'nowIndicator')) return; // already enabled
+    if (!$cal.length) return;
+
+    let viewName = '';
+    try {
+        const view = $cal.fullCalendar('getView');
+        viewName = view?.name || '';
+    } catch {
+        return;
+    }
+
+    // Only add fallback indicator to agendaDay view; agendaWeek already has it
+    if (viewName !== 'agendaDay') return;
+
+    const grid = document.querySelector('.calendar.fc .fc-time-grid') as HTMLElement | null;
+    const slats = grid?.querySelector('.fc-slats') as HTMLElement | null;
+    if (!grid || !slats) return;
+
+    const minMinutes = parseMinutes($cal.fullCalendar('option', 'minTime'), 0);
+    const maxMinutes = parseMinutes($cal.fullCalendar('option', 'maxTime'), 24 * 60);
+    const now = new Date();
+    const minutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    if (minutes < minMinutes || minutes > maxMinutes) return;
+
+    grid.style.position = 'relative';
+
+    const slatsOffset = slats.offsetTop;
+    const slatsHeight = slats.offsetHeight;
+    if (!slatsHeight) return;
+
+    const progress = (minutes - minMinutes) / (maxMinutes - minMinutes);
+    const top = slatsOffset + progress * slatsHeight;
+
+    const line = document.createElement('div');
+    line.className = 'cwu-now-indicator-line';
+    line.style.top = `${top}px`;
+
+    const dot = document.createElement('div');
+    dot.className = 'cwu-now-indicator-dot';
+    dot.style.left = '0';
+    dot.style.top = `${top + 1}px`;
+
+    grid.appendChild(line);
+    grid.appendChild(dot);
+}
+
+function scheduleNowIndicatorRefresh() {
+    if (nowIndicatorRefreshTimer) {
+        window.clearTimeout(nowIndicatorRefreshTimer);
+    }
+
+    const now = new Date();
+    const msUntilNextMinute = ((60 - now.getSeconds()) * 1000) - now.getMilliseconds() + 50;
+    nowIndicatorRefreshTimer = window.setTimeout(() => {
+        refreshNowIndicator();
+    }, msUntilNextMinute);
+}
+
+function refreshNowIndicator() {
+    const jq = (window as any).jQuery;
+    const $cal = jq?.('.calendar.fc');
+    if (!$cal?.length || !jq?.fn?.fullCalendar) return;
+
+    let viewName = '';
+    try {
+        const view = $cal.fullCalendar('getView');
+        viewName = view?.name || '';
+    } catch {
+        return;
+    }
+
+    // Only refresh for day view
+    if (viewName !== 'agendaDay') {
+        clearCustomNowIndicator();
+        return;
+    }
 
     try {
         $cal.fullCalendar('option', 'nowIndicator', true);
     } catch (e) {
-        console.error("Failed to enable now indicator on calendar:", e);
+        console.error('Failed to enable now indicator on calendar:', e);
     }
+
+    window.setTimeout(() => {
+        const builtInIndicator = document.querySelector('.calendar.fc .fc-now-indicator-line, .calendar.fc .fc-now-indicator-arrow');
+        if (!builtInIndicator) {
+            renderFallbackNowIndicator();
+        } else {
+            clearCustomNowIndicator();
+        }
+        scheduleNowIndicatorRefresh();
+    }, 50);
 }
 
 export function loadDailyCalendarView() {
     if (document.getElementById('week')) {
-        injectDayButton();
-        enableNowIndicator();
+        injectDayButtonWithRetry();
+        window.setTimeout(() => refreshNowIndicator(), 100);
         return;
     }
 
     const observer = new MutationObserver(() => {
         if (document.getElementById('week')) {
-            injectDayButton();
-            enableNowIndicator();
+            injectDayButtonWithRetry();
+            window.setTimeout(() => refreshNowIndicator(), 100);
+            observer.disconnect();
         }
     });
 
