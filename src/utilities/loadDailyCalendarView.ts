@@ -94,6 +94,28 @@ function ensureNowIndicatorStyles() {
             transform: translate(-50%, -50%);
             box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
         }
+
+        /* White background for day view */
+        .calendar.fc .fc-time-grid,
+        .calendar.fc .fc-time-grid .fc-bg,
+        .calendar.fc .fc-slats,
+        .calendar.fc .fc-slat,
+        .calendar.fc .fc-widget-content,
+        .calendar.fc .fc-day-grid {
+            background: white !important;
+            background-color: white !important;
+            background-image: none !important;
+        }
+
+        .calendar.fc .fc-agendaDay-view .fc-today,
+        .calendar.fc .fc-agendaDay-view td.fc-today,
+        .calendar.fc .fc-agendaDay-view .fc-bg td,
+        .calendar.fc .fc-agendaDay-view .fc-day,
+        .calendar.fc .fc-agendaDay-view .fc-slats td {
+            background: white !important;
+            background-color: white !important;
+            background-image: none !important;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -193,6 +215,8 @@ function refreshNowIndicator() {
         return;
     }
 
+    ensureNowIndicatorStyles();
+
     try {
         $cal.fullCalendar('option', 'nowIndicator', true);
     } catch (e) {
@@ -280,7 +304,6 @@ function injectImportClassesButtonWithRetry() {
     window.addEventListener('popstate', ensure);
 })();
 
-// course id prefix "[12345]"
 function hashColor(id: number): string {
     const colors = ['#2b8a3e', '#1e6bb8', '#b85c1e', '#8a2be2', '#d6336c', '#0ca678', '#0b7285'];
     return colors[id % colors.length];
