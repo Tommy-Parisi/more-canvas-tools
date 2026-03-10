@@ -1,5 +1,5 @@
 import { startDialog } from "../canvas/dialog";
-import { openImportClassesDialog } from "./import_classes";
+import { openManageClassesDialog } from "./import_classes";
 
 const DAY_BUTTON_HTML = `<button type="button" id="cwu-day" class="btn calendar-button" role="tab" aria-selected="false" aria-controls="calendar-app" tabindex="-1">Day</button>`;
 
@@ -90,12 +90,12 @@ function injectImportClassesButton() {
     btn.id = 'cwu-import-classes';
     btn.className = 'btn';
     btn.type = 'button';
-    btn.textContent = 'Import classes';
+    btn.textContent = 'Manage classes';
 
     createLink.parentElement.insertBefore(btn, createLink);
 
     btn.addEventListener('click', () => {
-        openImportClassesDialog();
+        openManageClassesDialog();
     });
 }
 

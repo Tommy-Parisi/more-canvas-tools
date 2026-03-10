@@ -5,71 +5,93 @@ function dayCheckbox(id: string, label: string) {
     return `<label style="margin-right:.5em"><input type="checkbox" id="${id}" class="cwu-day"> ${label}</label>`;
 }
 
-const IMPORT_DIALOG_HTML = `
-  <div id="cwu-import-classes" style="padding:8px">
-    <div id="cwu-import-alert" class="alert alert-info" style="display:none"></div>
-    <div class="row" style="margin-bottom:8px">
-      <div class="col-md-12">
-        <strong>Pattern</strong><br/>
-        <label style="margin-right:1em"><input type="radio" name="cwu-pattern" value="mwf" checked> Mon/Wed/Fri (55 min)</label>
-        <label style="margin-right:1em"><input type="radio" name="cwu-pattern" value="tuth"> Tue/Thu (80 min)</label>
-        <label><input type="radio" name="cwu-pattern" value="custom"> Custom</label>
-      </div>
+const MANAGE_DIALOG_HTML = `
+  <div id="cwu-manage-classes" style="padding:8px">
+    <div style="margin-bottom:16px">
+      <button id="cwu-mode-import" class="btn btn-primary active" data-mode="import">Import classes</button>
+      <button id="cwu-mode-remove" class="btn btn-default" data-mode="remove" style="margin-left:6px">Remove classes</button>
     </div>
-    <div class="row" style="margin-bottom:8px">
-      <div class="col-md-12">
-        <strong>Days</strong><br/>
-        ${dayCheckbox('cwu-mon','Mon')}
-        ${dayCheckbox('cwu-tue','Tue')}
-        ${dayCheckbox('cwu-wed','Wed')}
-        ${dayCheckbox('cwu-thu','Thu')}
-        ${dayCheckbox('cwu-fri','Fri')}
-        ${dayCheckbox('cwu-sat','Sat')}
-        ${dayCheckbox('cwu-sun','Sun')}
+
+    <!-- IMPORT MODE -->
+    <div id="cwu-import-mode" class="cwu-mode-section">
+      <div id="cwu-import-alert" class="alert alert-info" style="display:none"></div>
+      <div class="row" style="margin-bottom:8px">
+        <div class="col-md-12">
+          <strong>Pattern</strong><br/>
+          <label style="margin-right:1em"><input type="radio" name="cwu-pattern" value="mwf" checked> Mon/Wed/Fri (55 min)</label>
+          <label style="margin-right:1em"><input type="radio" name="cwu-pattern" value="tuth"> Tue/Thu (80 min)</label>
+          <label><input type="radio" name="cwu-pattern" value="custom"> Custom</label>
+        </div>
       </div>
-    </div>
-    <div class="row" style="margin-bottom:8px">
-      <div class="col-md-4">
-        <label><strong>Start time</strong><br/>
-          <input type="time" id="cwu-start-time" class="form-control" value="09:00">
-        </label>
+      <div class="row" style="margin-bottom:8px">
+        <div class="col-md-12">
+          <strong>Days</strong><br/>
+          ${dayCheckbox('cwu-mon','Mon')}
+          ${dayCheckbox('cwu-tue','Tue')}
+          ${dayCheckbox('cwu-wed','Wed')}
+          ${dayCheckbox('cwu-thu','Thu')}
+          ${dayCheckbox('cwu-fri','Fri')}
+          ${dayCheckbox('cwu-sat','Sat')}
+          ${dayCheckbox('cwu-sun','Sun')}
+        </div>
       </div>
-      <div class="col-md-4">
-        <label><strong>Duration (minutes)</strong><br/>
-          <input type="number" id="cwu-duration" class="form-control" min="15" step="5" value="55">
-        </label>
+      <div class="row" style="margin-bottom:8px">
+        <div class="col-md-4">
+          <label><strong>Start time</strong><br/>
+            <input type="time" id="cwu-start-time" class="form-control" value="09:00">
+          </label>
+        </div>
+        <div class="col-md-4">
+          <label><strong>Duration (minutes)</strong><br/>
+            <input type="number" id="cwu-duration" class="form-control" min="15" step="5" value="55">
+          </label>
+        </div>
+        <div class="col-md-4">
+          <label><strong>Location (optional)</strong><br/>
+            <input type="text" id="cwu-location" class="form-control" placeholder="e.g. Smith 201">
+          </label>
+        </div>
       </div>
-      <div class="col-md-4">
-        <label><strong>Location (optional)</strong><br/>
-          <input type="text" id="cwu-location" class="form-control" placeholder="e.g. Smith 201">
-        </label>
+      <div class="row" style="margin-bottom:8px">
+        <div class="col-md-6">
+          <label><strong>Start date</strong><br/>
+            <input type="date" id="cwu-start-date" class="form-control">
+          </label>
+        </div>
+        <div class="col-md-6">
+          <label><strong>End date</strong><br/>
+            <input type="date" id="cwu-end-date" class="form-control">
+          </label>
+        </div>
       </div>
-    </div>
-    <div class="row" style="margin-bottom:8px">
-      <div class="col-md-6">
-        <label><strong>Start date</strong><br/>
-          <input type="date" id="cwu-start-date" class="form-control">
-        </label>
+      <div class="row" style="margin-top:8px">
+        <div class="col-md-12">
+          <button id="cwu-preview-import" class="btn btn-primary">Continue</button>
+        </div>
       </div>
-      <div class="col-md-6">
-        <label><strong>End date</strong><br/>
-          <input type="date" id="cwu-end-date" class="form-control">
-        </label>
-      </div>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <div class="col-md-12">
-        <button id="cwu-preview-import" class="btn btn-primary">Continue</button>
+
+      <hr/>
+      <div id="cwu-courses-step" style="display:none">
+        <h3>Select courses</h3>
+        <div id="cwu-courses-list">Loading courses…</div>
+        <div style="margin-top:8px">
+          <button id="cwu-create-events" class="btn btn-success">Create events</button>
+        </div>
+        <div id="cwu-create-result" style="margin-top:8px; display:none"></div>
       </div>
     </div>
 
-    <hr/>
-    <div id="cwu-courses-step" style="display:none">
-      <h3>Select courses</h3>
-      <div id="cwu-courses-list">Loading courses…</div>
-      <div style="margin-top:8px">
-        <button id="cwu-create-events" class="btn btn-success">Create events</button>
+    <!-- REMOVE MODE -->
+    <div id="cwu-remove-mode" class="cwu-mode-section" style="display:none">
+      <div id="cwu-remove-alert" class="alert alert-info" style="display:none"></div>
+      <div style="margin-bottom:12px">
+        <h4>Select courses to remove all class events</h4>
+        <div id="cwu-remove-courses-list">Loading courses…</div>
       </div>
+      <div style="margin-top:8px">
+        <button id="cwu-remove-events" class="btn btn-danger">Remove classes</button>
+      </div>
+      <div id="cwu-remove-result" style="margin-top:8px; display:none"></div>
     </div>
   </div>
 `;
@@ -105,10 +127,27 @@ function initDefaults() {
   setPatternDefaults('mwf');
 }
 
-export function openImportClassesDialog() {
-  const dlg = startDialog('Import classes', IMPORT_DIALOG_HTML);
+export function openManageClassesDialog() {
+  const dlg = startDialog('Manage classes', MANAGE_DIALOG_HTML);
   const jq = (window as any).jQuery || (window as any).$;
   initDefaults();
+
+  // Mode switcher
+  jq('#cwu-mode-import').on('click', function(this: HTMLButtonElement) {
+    jq('.cwu-mode-section').hide();
+    jq('#cwu-import-mode').show();
+    jq('#cwu-mode-import, #cwu-mode-remove').removeClass('active').addClass('btn-default').removeClass('btn-primary').removeClass('btn-danger');
+    jq(this).addClass('active').addClass('btn-primary').removeClass('btn-default');
+  });
+
+  jq('#cwu-mode-remove').on('click', function(this: HTMLButtonElement) {
+    jq('.cwu-mode-section').hide();
+    jq('#cwu-remove-mode').show();
+    jq('#cwu-mode-import, #cwu-mode-remove').removeClass('active').addClass('btn-default').removeClass('btn-primary').removeClass('btn-danger');
+    jq(this).addClass('active').addClass('btn-danger').removeClass('btn-default');
+    loadRemoveCoursesList();
+  });
+
   jq('input[name="cwu-pattern"]').on('change', function(this: HTMLInputElement){
     setPatternDefaults(this.value as any);
   });
@@ -117,6 +156,14 @@ export function openImportClassesDialog() {
     // Show courses step
     jq('#cwu-courses-step').show();
     loadCoursesList();
+  });
+
+  jq('#cwu-create-events').on('click', () => {
+    createEventsForSelection();
+  });
+
+  jq('#cwu-remove-events').on('click', () => {
+    removeEventsForSelection();
   });
 }
 
@@ -138,6 +185,49 @@ async function fetchStudentCourses(): Promise<CourseLite[]> {
   });
 }
 
+async function fetchAllCalendarEvents(): Promise<Array<{id: string; title: string; start: string}>> {
+  return new Promise((resolve, reject) => {
+    const jq = (window as any).jQuery || (window as any).$;
+    const baseUrl = getBaseApiUrl();
+    const url = baseUrl + 'calendar_events';
+    // Canvas requires a date range
+    const now = new Date();
+    const startDate = new Date(now.getFullYear() - 1, 0, 1);
+    const endDate = new Date(now.getFullYear() + 1, 11, 31);
+    const params = {
+      'per_page': 500,
+      'start_date': startDate.toISOString().split('T')[0],
+      'end_date': endDate.toISOString().split('T')[0],
+      'context_codes[]': `user_${(window as any).ENV?.current_user?.id || 'self'}`
+    };
+    console.log('=== FETCH ALL EVENTS ===');
+    console.log('Base API URL:', baseUrl);
+    console.log('Full URL:', url);
+    console.log('Params:', params);
+    jq.getJSON(url, params).done((data: any) => {
+      console.log('Raw API response type:', typeof data);
+      console.log('Raw API response:', data);
+      console.log('Is array?', Array.isArray(data));
+      console.log('Length:', data ? data.length : 'null/undefined');
+      if (data && data.length > 0) {
+        console.log('First event:', data[0]);
+      }
+      const events = (data || []).map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        start: e.start_at
+      }));
+      console.log('Mapped events:', events);
+      resolve(events);
+    }).fail((xhr: any) => {
+      console.error('=== FETCH FAILED ===');
+      console.error('Status:', xhr.status);
+      console.error('Response text:', xhr.responseText);
+      reject(new Error('Failed to fetch events'));
+    });
+  });
+}
+
 function loadCoursesList() {
   const jq = (window as any).jQuery || (window as any).$;
   const container = jq('#cwu-courses-list');
@@ -150,16 +240,35 @@ function loadCoursesList() {
     COURSE_INDEX = Object.fromEntries(courses.map(c => [c.id, c]));
     const html = [
       '<div class="form-group">',
-      '<label><input type="checkbox" id="cwu-select-all" checked> Select all</label>',
-      '<div style="max-height: 200px; overflow:auto; border:1px solid #ddd; padding:6px; margin-top:6px">',
-      ...courses.map(c => `<div><label><input type="checkbox" class="cwu-course" data-id="${c.id}" checked> [${c.course_code || c.id}] ${c.name}</label></div>`),
+      '<div style="max-height: 200px; overflow:auto; border:1px solid #ddd; padding:6px; margin-top:0">',
+      ...courses.map(c => `<div><label><input type="checkbox" class="cwu-course" data-id="${c.id}"> [${c.course_code || c.id}] ${c.name}</label></div>`),
       '</div></div>'
     ].join('');
     container.html(html);
-    jq('#cwu-select-all').on('change', function(this: HTMLInputElement){
-      jq('.cwu-course').prop('checked', this.checked);
-    });
-    jq('#cwu-create-events').prop('disabled', true).text('Create events (coming soon)');
+    jq('#cwu-create-events').prop('disabled', false).text('Create events');
+  }).catch(() => {
+    container.html('<div class="alert alert-danger">Failed to load courses.</div>');
+  });
+}
+
+function loadRemoveCoursesList() {
+  const jq = (window as any).jQuery || (window as any).$;
+  const container = jq('#cwu-remove-courses-list');
+  container.text('Loading courses…');
+  fetchStudentCourses().then((courses) => {
+    if (!courses.length) {
+      container.html('<div class="alert alert-warning">No active courses found.</div>');
+      return;
+    }
+    COURSE_INDEX = Object.fromEntries(courses.map(c => [c.id, c]));
+    const html = [
+      '<div class="form-group">',
+      '<div style="max-height: 200px; overflow:auto; border:1px solid #ddd; padding:6px; margin-top:0">',
+      ...courses.map(c => `<div><label><input type="checkbox" class="cwu-remove-course" data-id="${c.id}"> [${c.course_code || c.id}] ${c.name}</label></div>`),
+      '</div></div>'
+    ].join('');
+    container.html(html);
+    jq('#cwu-remove-events').prop('disabled', false).text('Remove classes');
   }).catch(() => {
     container.html('<div class="alert alert-danger">Failed to load courses.</div>');
   });
@@ -203,28 +312,67 @@ async function createEventsForSelection() {
   const location = (jq('#cwu-location').val() as string) || '';
   const days = selectedByDays();
   if (!startDate || !endDate || !days.length) {
-    jq('#cwu-import-alert').removeClass('alert-info').addClass('alert-warning').text('Please select at least one day and set start/end dates.').show();
+    jq('#cwu-create-result').html('<div class="alert alert-warning">Please select at least one day and set start/end dates.</div>').show();
     return;
   }
-  const rrule = `FREQ=WEEKLY;BYDAY=${days.join(',')};UNTIL=${untilZ(endDate)}`;
+  const rrule = `FREQ=WEEKLY;INTERVAL=1;BYDAY=${days.join(',')};UNTIL=${untilZ(endDate)}`;
   const start_at = toISO(startDate, startTime);
   const end_at = endISOFromStart(startDate, startTime, duration);
 
   const ids = $('.cwu-course:checked').map((i,el)=>Number($(el).data('id'))).get();
   if (!ids.length) {
-    jq('#cwu-import-alert').removeClass('alert-info').addClass('alert-warning').text('Please select at least one course.').show();
+    jq('#cwu-create-result').html('<div class="alert alert-warning">Please select at least one course.</div>').show();
     return;
   }
 
-  jq('#cwu-import-alert').removeClass('alert-warning').addClass('alert-info').text('Creating events…').show();
+  jq('#cwu-create-events').prop('disabled', true);
+  jq('#cwu-create-result').html('<div class="alert alert-info">Creating events…</div>').show();
 
   const url = getBaseApiUrl() + 'calendar_events';
   const ctxCode = (() => {
     try { return `user_${(window as any).ENV.current_user.id}`; } catch { return 'user_self'; }
   })();
   const getCsrf = () => {
-    const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
-    return meta?.content || '';
+    const byMeta = [
+      'meta[name="csrf-token"]',
+      'meta[name="_csrf_token"]',
+      'meta[name="csrf-param"]'
+    ];
+    for (const selector of byMeta) {
+      const meta = document.querySelector(selector) as HTMLMetaElement | null;
+      if (meta?.content) return meta.content;
+    }
+
+    const env = (window as any).ENV || {};
+    if (typeof env.csrf_token === 'string' && env.csrf_token) return env.csrf_token;
+    if (typeof env.CSRF_TOKEN === 'string' && env.CSRF_TOKEN) return env.CSRF_TOKEN;
+
+    const rawCookie = document.cookie
+      .split('; ')
+      .find((entry) => entry.startsWith('_csrf_token='));
+    if (rawCookie) {
+      const token = rawCookie.substring('_csrf_token='.length);
+      try {
+        return decodeURIComponent(token);
+      } catch {
+        return token;
+      }
+    }
+
+    return '';
+  };
+
+  const postCalendarEvent = (data: any) => {
+    const csrf = getCsrf();
+    const headers: Record<string, string> = {};
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+    const payload = csrf ? { authenticity_token: csrf, ...data } : data;
+    return $.ajax({
+      url,
+      method: 'POST',
+      headers,
+      data: payload
+    });
   };
 
   const tz = (() => (Intl && Intl.DateTimeFormat ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC'))();
@@ -262,21 +410,16 @@ async function createEventsForSelection() {
       'calendar_event[all_day]': false,
       'calendar_event[time_zone]': tz
     };
-    $.ajax({
-      url,
-      method: 'POST',
-      headers: { 'X-CSRF-Token': getCsrf() },
-      data: payloadWithCtx
-    }).done(() => resolve({ok:true}))
+    postCalendarEvent(payloadWithCtx).done(() => resolve({ok:true}))
       .fail((jqXHR) => {
         if (jqXHR.status === 422) {
           // Retry without context_code; Canvas will default to personal calendar
-          $.ajax({ url, method: 'POST', headers: { 'X-CSRF-Token': getCsrf() }, data: payloadNoCtx })
+          postCalendarEvent(payloadNoCtx)
             .done(() => resolve({ok:true}))
             .fail((jq2) => {
               if (jq2.status === 422) {
                 // Final retry with context_type/context_id
-                $.ajax({ url, method: 'POST', headers: { 'X-CSRF-Token': getCsrf() }, data: payloadAltCtx })
+                postCalendarEvent(payloadAltCtx)
                   .done(() => resolve({ok:true}))
                   .fail((jq3) => {
                     console.warn('Calendar event create failed (alt ctx)', jq3.status, jq3.responseText);
@@ -324,19 +467,14 @@ async function createEventsForSelection() {
       'calendar_event[all_day]': false,
       'calendar_event[time_zone]': tz
     };
-    $.ajax({
-      url,
-      method: 'POST',
-      headers: { 'X-CSRF-Token': getCsrf() },
-      data: payloadWithCtx
-    }).done(() => resolve({ok:true}))
+    postCalendarEvent(payloadWithCtx).done(() => resolve({ok:true}))
       .fail((jqXHR) => {
         if (jqXHR.status === 422) {
-          $.ajax({ url, method: 'POST', headers: { 'X-CSRF-Token': getCsrf() }, data: payloadNoCtx })
+          postCalendarEvent(payloadNoCtx)
             .done(() => resolve({ok:true}))
             .fail((jq2) => {
               if (jq2.status === 422) {
-                $.ajax({ url, method: 'POST', headers: { 'X-CSRF-Token': getCsrf() }, data: payloadAltCtx })
+                postCalendarEvent(payloadAltCtx)
                   .done(() => resolve({ok:true}))
                   .fail(() => resolve({ok:false}));
               } else {
@@ -361,10 +499,10 @@ async function createEventsForSelection() {
   }
 
   if (seriesFailed === 0) {
-    jq('#cwu-import-alert').removeClass('alert-warning').addClass('alert-success').text('Recurring events created. You may need to refresh to see all series.').show();
+    jq('#cwu-create-result').html('<div class="alert alert-success">✓ Recurring events created successfully!</div>').show();
   } else {
     // Fallback: create individual occurrences for each selected day between start and end
-    jq('#cwu-import-alert').removeClass('alert-info').addClass('alert-warning').text('Could not create recurring series (422). Falling back to individual events…').show();
+    jq('#cwu-create-result').html('<div class="alert alert-warning">Could not create recurring series. Falling back to individual events…</div>').show();
 
     const dayMap: Record<string, number> = { MO:1, TU:2, WE:3, TH:4, FR:5, SA:6, SU:0 };
     const wanted = new Set(days.map(d => dayMap[d]));
@@ -388,12 +526,127 @@ async function createEventsForSelection() {
       }
     }
     if (failedSingles === 0) {
-      jq('#cwu-import-alert').removeClass('alert-warning').addClass('alert-success').text('Events created as individual occurrences.').show();
+      jq('#cwu-create-result').html('<div class="alert alert-success">✓ Events created as individual occurrences!</div>').show();
     } else {
-      jq('#cwu-import-alert').removeClass('alert-info').addClass('alert-warning').html(`Some events failed to create (${failedSingles}). Check console for details.`).show();
+      jq('#cwu-create-result').html(`<div class="alert alert-warning">⚠ ${failedSingles} events failed to create. Check console for details.</div>`).show();
     }
   }
 
   // Trigger a refetch so new events show without hard reload
   try { (window as any).jQuery('.calendar.fc').fullCalendar('refetchEvents'); } catch {}
+}
+
+async function removeEventsForSelection() {
+  const jq = (window as any).jQuery || (window as any).$;
+  
+  const ids = jq('.cwu-remove-course:checked').map((i: number, el: any) => Number(jq(el).data('id'))).get();
+  if (!ids.length) {
+    jq('#cwu-remove-result').html('<div class="alert alert-warning">Please select at least one course.</div>').show();
+    return;
+  }
+
+  jq('#cwu-remove-events').prop('disabled', true);
+  jq('#cwu-remove-result').html('<div class="alert alert-info">Finding and removing class events…</div>').show();
+
+  try {
+    // Fetch all calendar events for the user
+    const events = await fetchAllCalendarEvents();
+    console.log('Fetched events:', events);
+    
+    // Build a set of course codes for selected courses
+    const courseCodes = new Set<string>();
+    for (const id of ids) {
+      const meta = COURSE_INDEX[id];
+      if (meta?.course_code) {
+        courseCodes.add(meta.course_code);
+      } else {
+        // Fallback: use numeric ID as string
+        courseCodes.add(String(id));
+      }
+    }
+    console.log('Looking for course codes:', Array.from(courseCodes));
+    
+    // Filter for events matching "[courseCode] Class" for selected courses
+    const eventsToDelete = events.filter(e => {
+      const match = /^\[(.+?)\]\s+Class$/.exec(e.title);
+      if (!match) {
+        console.log('Title does not match pattern:', e.title);
+        return false;
+      }
+      const courseCode = match[1];
+      const isSelected = courseCodes.has(courseCode);
+      if (isSelected) {
+        console.log('Found class event to delete:', e.title, 'courseCode:', courseCode);
+      }
+      return isSelected;
+    });
+    
+    console.log('Events to delete:', eventsToDelete);
+
+    if (!eventsToDelete.length) {
+      jq('#cwu-remove-result').html('<div class="alert alert-info">No class events found for selected courses. Check browser console for event titles.</div>').show();
+      jq('#cwu-remove-events').prop('disabled', false);
+      return;
+    }
+
+    // Delete all found events
+    let deleted = 0;
+    for (const evt of eventsToDelete) {
+      // eslint-disable-next-line no-await-in-loop
+      const ok = await deleteCalendarEvent(evt.id);
+      if (ok) deleted++;
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(r => setTimeout(r, 80));
+    }
+
+    jq('#cwu-remove-result').html(`<div class="alert alert-success">✓ Removed ${deleted} / ${eventsToDelete.length} class events!</div>`).show();
+    jq('#cwu-remove-events').text('Done').prop('disabled', true);
+
+    try { (window as any).jQuery('.calendar.fc').fullCalendar('refetchEvents'); } catch {}
+  } catch (err) {
+    jq('#cwu-remove-result').html('<div class="alert alert-danger">Error removing events. Check console.</div>').show();
+    jq('#cwu-remove-events').prop('disabled', false);
+    console.error('Remove events error:', err);
+  }
+}
+
+async function deleteCalendarEvent(eventId: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const jq = (window as any).jQuery || (window as any).$;
+    const url = getBaseApiUrl() + `calendar_events/${eventId}`;
+    const csrf = (() => {
+      const byMeta = [
+        'meta[name="csrf-token"]',
+        'meta[name="_csrf_token"]',
+        'meta[name="csrf-param"]'
+      ];
+      for (const selector of byMeta) {
+        const meta = document.querySelector(selector) as HTMLMetaElement | null;
+        if (meta?.content) return meta.content;
+      }
+      const env = (window as any).ENV || {};
+      if (typeof env.csrf_token === 'string' && env.csrf_token) return env.csrf_token;
+      if (typeof env.CSRF_TOKEN === 'string' && env.CSRF_TOKEN) return env.CSRF_TOKEN;
+      const rawCookie = document.cookie
+        .split('; ')
+        .find((entry) => entry.startsWith('_csrf_token='));
+      if (rawCookie) {
+        const token = rawCookie.substring('_csrf_token='.length);
+        try {
+          return decodeURIComponent(token);
+        } catch {
+          return token;
+        }
+      }
+      return '';
+    })();
+    const headers: Record<string, string> = {};
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+    jq.ajax({
+      url,
+      method: 'DELETE',
+      headers
+    }).done(() => resolve(true))
+      .fail(() => resolve(false));
+  });
 }
