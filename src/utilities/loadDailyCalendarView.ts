@@ -49,6 +49,19 @@ function injectDayButton() {
     });
 }
 
+function injectDayButtonWithRetry() {
+    if (document.getElementById('cwu-day')) return;
+
+    const weekBtn = document.getElementById('week');
+    if (!weekBtn) {
+        // Element not found yet, retry in 300ms
+        setTimeout(injectDayButtonWithRetry, 300);
+        return;
+    }
+
+    injectDayButton();
+}
+
 function enableNowIndicator(){
     const jq = (window as any).jQuery;
     const $cal = jq('.calendar.fc');
@@ -99,13 +112,26 @@ function injectImportClassesButton() {
     });
 }
 
+function injectImportClassesButtonWithRetry() {
+    if (document.getElementById('cwu-import-classes')) return;
+
+    const createLink = document.getElementById('create_new_event_link');
+    if (!createLink || !createLink.parentElement) {
+        // Element not found yet, retry in 300ms
+        setTimeout(injectImportClassesButtonWithRetry, 300);
+        return;
+    }
+
+    injectImportClassesButton();
+}
+
 (() => {
     const ensure = () => {
-        if (!document.getElementById('cwu-import-classes') && document.getElementById('create_new_event_link')) {
-            injectImportClassesButton();
+        if (!document.getElementById('cwu-import-classes')) {
+            injectImportClassesButtonWithRetry();
         }
-        if (!document.getElementById('cwu-day') && document.getElementById('week')) {
-            injectDayButton();
+        if (!document.getElementById('cwu-day')) {
+            injectDayButtonWithRetry();
         }
     };
     ensure();
