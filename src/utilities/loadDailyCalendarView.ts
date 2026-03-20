@@ -211,6 +211,8 @@ function refreshNowIndicator() {
 
     // Only refresh for day view
     if (viewName !== 'agendaDay') {
+  
+  
         clearCustomNowIndicator();
         return;
     }

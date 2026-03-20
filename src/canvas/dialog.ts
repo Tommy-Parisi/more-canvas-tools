@@ -8,7 +8,7 @@ export function startDialog(title: string, body: string) {
         show: "blind",
         hide: "explode",
         width: '80%',
-        height: document.documentElement.clientHeight - 100
+        height: document.documentElement.clientHeight - 50
     });
     $("#dialog").dialog("open");
     $('#dialog').html(body);

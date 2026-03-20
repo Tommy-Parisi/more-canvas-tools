@@ -7,14 +7,19 @@ function dayCheckbox(id: string, label: string) {
 
 const MANAGE_DIALOG_HTML = `
   <div id="cwu-manage-classes" style="padding:8px">
+    <div id="cwu-courses-step" style="margin-bottom:12px">
+      <strong>Select course</strong>
+      <div id="cwu-courses-list" style="margin-top:4px">Loading courses…</div>
+    </div>
     <div style="margin-bottom:16px">
-      <button id="cwu-mode-import" class="btn btn-primary active" data-mode="import">Import classes</button>
-      <button id="cwu-mode-remove" class="btn btn-default" data-mode="remove" style="margin-left:6px">Remove classes</button>
+      <button id="cwu-mode-import" class="btn btn-primary active" data-mode="import">Schedule Times</button>
+      <button id="cwu-mode-remove" class="btn btn-default" data-mode="remove" style="margin-left:6px">Remove Courses</button>
     </div>
 
     <!-- IMPORT MODE -->
     <div id="cwu-import-mode" class="cwu-mode-section">
       <div id="cwu-import-alert" class="alert alert-info" style="display:none"></div>
+      <hr/>
       <div class="row" style="margin-bottom:8px">
         <div class="col-md-12">
           <strong>Pattern</strong><br/>
@@ -53,12 +58,12 @@ const MANAGE_DIALOG_HTML = `
         </div>
       </div>
       <div class="row" style="margin-bottom:8px">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label><strong>Start date</strong><br/>
             <input type="date" id="cwu-start-date" class="form-control">
           </label>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label><strong>End date</strong><br/>
             <input type="date" id="cwu-end-date" class="form-control">
           </label>
@@ -66,30 +71,17 @@ const MANAGE_DIALOG_HTML = `
       </div>
       <div class="row" style="margin-top:8px">
         <div class="col-md-12">
-          <button id="cwu-preview-import" class="btn btn-primary">Continue</button>
-        </div>
-      </div>
-
-      <hr/>
-      <div id="cwu-courses-step" style="display:none">
-        <h3>Select courses</h3>
-        <div id="cwu-courses-list">Loading courses…</div>
-        <div style="margin-top:8px">
           <button id="cwu-create-events" class="btn btn-success">Create events</button>
         </div>
-        <div id="cwu-create-result" style="margin-top:8px; display:none"></div>
       </div>
+      <div id="cwu-create-result" style="margin-top:8px; display:none"></div>
     </div>
 
     <!-- REMOVE MODE -->
     <div id="cwu-remove-mode" class="cwu-mode-section" style="display:none">
       <div id="cwu-remove-alert" class="alert alert-info" style="display:none"></div>
-      <div style="margin-bottom:12px">
-        <h4>Select courses to remove all class events</h4>
-        <div id="cwu-remove-courses-list">Loading courses…</div>
-      </div>
       <div style="margin-top:8px">
-        <button id="cwu-remove-events" class="btn btn-danger">Remove classes</button>
+        <button id="cwu-remove-events" class="btn btn-danger">Remove Courses</button>
       </div>
       <div id="cwu-remove-result" style="margin-top:8px; display:none"></div>
     </div>
@@ -131,6 +123,7 @@ export function openManageClassesDialog() {
   const dlg = startDialog('Manage Courses', MANAGE_DIALOG_HTML);
   const jq = (window as any).jQuery || (window as any).$;
   initDefaults();
+  loadCoursesList();
 
   // Mode switcher
   jq('#cwu-mode-import').on('click', function(this: HTMLButtonElement) {
@@ -145,17 +138,10 @@ export function openManageClassesDialog() {
     jq('#cwu-remove-mode').show();
     jq('#cwu-mode-import, #cwu-mode-remove').removeClass('active').addClass('btn-default').removeClass('btn-primary').removeClass('btn-danger');
     jq(this).addClass('active').addClass('btn-danger').removeClass('btn-default');
-    loadRemoveCoursesList();
   });
 
   jq('input[name="cwu-pattern"]').on('change', function(this: HTMLInputElement){
     setPatternDefaults(this.value as any);
-  });
-
-  jq('#cwu-preview-import').on('click', () => {
-    // Show courses step
-    jq('#cwu-courses-step').show();
-    loadCoursesList();
   });
 
   jq('#cwu-create-events').on('click', () => {
@@ -173,7 +159,6 @@ let COURSE_INDEX: Record<number, CourseLite> = {};
 async function fetchStudentCourses(): Promise<CourseLite[]> {
   return new Promise((resolve, reject) => {
     const url = getBaseApiUrl() + 'courses';
-    // Filter to active student enrollments; Canvas paginates but default is fine for typical loads
     $.getJSON(url, {
       enrollment_state: 'active',
       enrollment_type: 'student',
@@ -190,7 +175,6 @@ async function fetchAllCalendarEvents(): Promise<Array<{id: string; title: strin
     const jq = (window as any).jQuery || (window as any).$;
     const baseUrl = getBaseApiUrl();
     const url = baseUrl + 'calendar_events';
-    // Canvas requires a date range
     const now = new Date();
     const startDate = new Date(now.getFullYear() - 1, 0, 1);
     const endDate = new Date(now.getFullYear() + 1, 11, 31);
@@ -241,7 +225,7 @@ function loadCoursesList() {
     const html = [
       '<div class="form-group">',
       '<div style="max-height: 200px; overflow:auto; border:1px solid #ddd; padding:6px; margin-top:0">',
-      ...courses.map(c => `<div><label><input type="checkbox" class="cwu-course" data-id="${c.id}"> [${c.course_code || c.id}] ${c.name}</label></div>`),
+      ...courses.map(c => `<div><label><input type="radio" name="cwu-course" class="cwu-course" data-id="${c.id}"> [${c.course_code || c.id}] ${c.name}</label></div>`),
       '</div></div>'
     ].join('');
     container.html(html);
@@ -268,7 +252,7 @@ function loadRemoveCoursesList() {
       '</div></div>'
     ].join('');
     container.html(html);
-    jq('#cwu-remove-events').prop('disabled', false).text('Remove classes');
+    jq('#cwu-remove-events').prop('disabled', false).text('Remove Courses');
   }).catch(() => {
     container.html('<div class="alert alert-danger">Failed to load courses.</div>');
   });
@@ -382,7 +366,7 @@ async function createEventsForSelection() {
     const prefix = meta?.course_code ? `[${meta.course_code}]` : `[${courseId}]`;
     const payloadWithCtx: any = {
       'calendar_event[context_code]': ctxCode,
-      'calendar_event[title]': `${prefix} Class`,
+      'calendar_event[title]': `${prefix} Course`,
       'calendar_event[start_at]': start_at,
       'calendar_event[end_at]': end_at,
       'calendar_event[rrule]': rrule,
@@ -391,7 +375,7 @@ async function createEventsForSelection() {
       'calendar_event[time_zone]': tz
     };
     const payloadNoCtx: any = {
-      'calendar_event[title]': `${prefix} Class`,
+      'calendar_event[title]': `${prefix} Course`,
       'calendar_event[start_at]': start_at,
       'calendar_event[end_at]': end_at,
       'calendar_event[rrule]': rrule,
@@ -402,7 +386,7 @@ async function createEventsForSelection() {
     const payloadAltCtx: any = {
       'calendar_event[context_type]': 'User',
       'calendar_event[context_id]': (window as any).ENV?.current_user?.id,
-      'calendar_event[title]': `${prefix} Class`,
+      'calendar_event[title]': `${prefix} Course`,
       'calendar_event[start_at]': start_at,
       'calendar_event[end_at]': end_at,
       'calendar_event[rrule]': rrule,
@@ -442,7 +426,7 @@ async function createEventsForSelection() {
     const prefix = meta?.course_code ? `[${meta.course_code}]` : `[${courseId}]`;
     const payloadWithCtx: any = {
       'calendar_event[context_code]': ctxCode,
-      'calendar_event[title]': `${prefix} Class`,
+      'calendar_event[title]': `${prefix} Course`,
       'calendar_event[start_at]': toISO(ymd, startTime),
       'calendar_event[end_at]': endISOFromStart(ymd, startTime, duration),
       'calendar_event[location_name]': location,
@@ -450,7 +434,7 @@ async function createEventsForSelection() {
       'calendar_event[time_zone]': tz
     };
     const payloadNoCtx: any = {
-      'calendar_event[title]': `${prefix} Class`,
+      'calendar_event[title]': `${prefix} Course`,
       'calendar_event[start_at]': toISO(ymd, startTime),
       'calendar_event[end_at]': endISOFromStart(ymd, startTime, duration),
       'calendar_event[location_name]': location,
@@ -460,7 +444,7 @@ async function createEventsForSelection() {
     const payloadAltCtx: any = {
       'calendar_event[context_type]': 'User',
       'calendar_event[context_id]': (window as any).ENV?.current_user?.id,
-      'calendar_event[title]': `${prefix} Class`,
+      'calendar_event[title]': `${prefix} Course`,
       'calendar_event[start_at]': toISO(ymd, startTime),
       'calendar_event[end_at]': endISOFromStart(ymd, startTime, duration),
       'calendar_event[location_name]': location,
@@ -487,8 +471,6 @@ async function createEventsForSelection() {
       });
   });
 
-  // Pace requests to avoid bursts
-  // First attempt: recurring series via RRULE
   let seriesFailed = 0;
   for (const id of ids) {
     // eslint-disable-next-line no-await-in-loop
@@ -501,7 +483,6 @@ async function createEventsForSelection() {
   if (seriesFailed === 0) {
     jq('#cwu-create-result').html('<div class="alert alert-success">✓ Recurring events created successfully!</div>').show();
   } else {
-    // Fallback: create individual occurrences for each selected day between start and end
     jq('#cwu-create-result').html('<div class="alert alert-warning">Could not create recurring series. Falling back to individual events…</div>').show();
 
     const dayMap: Record<string, number> = { MO:1, TU:2, WE:3, TH:4, FR:5, SA:6, SU:0 };
@@ -518,10 +499,8 @@ async function createEventsForSelection() {
     let failedSingles = 0;
     for (const id of ids) {
       for (const ymd of dates) {
-        // eslint-disable-next-line no-await-in-loop
         const ok = await createSingle(id, ymd);
         if (!ok.ok) failedSingles++;
-        // eslint-disable-next-line no-await-in-loop
         await new Promise(r => setTimeout(r, 80));
       }
     }
@@ -532,21 +511,20 @@ async function createEventsForSelection() {
     }
   }
 
-  // Trigger a refetch so new events show without hard reload
   try { (window as any).jQuery('.calendar.fc').fullCalendar('refetchEvents'); } catch {}
 }
 
 async function removeEventsForSelection() {
   const jq = (window as any).jQuery || (window as any).$;
   
-  const ids = jq('.cwu-remove-course:checked').map((i: number, el: any) => Number(jq(el).data('id'))).get();
+  const ids = jq('.cwu-course:checked').map((i: number, el: any) => Number(jq(el).data('id'))).get();
   if (!ids.length) {
     jq('#cwu-remove-result').html('<div class="alert alert-warning">Please select at least one course.</div>').show();
     return;
   }
 
   jq('#cwu-remove-events').prop('disabled', true);
-  jq('#cwu-remove-result').html('<div class="alert alert-info">Finding and removing class events…</div>').show();
+  jq('#cwu-remove-result').html('<div class="alert alert-info">Finding and removing course events…</div>').show();
 
   try {
     // Fetch all calendar events for the user
@@ -568,7 +546,7 @@ async function removeEventsForSelection() {
     
     // Filter for events matching "[courseCode] Class" for selected courses
     const eventsToDelete = events.filter(e => {
-      const match = /^\[(.+?)\]\s+Class$/.exec(e.title);
+      const match = /^\[(.+?)\]\s+Course$/.exec(e.title);
       if (!match) {
         console.log('Title does not match pattern:', e.title);
         return false;
@@ -584,7 +562,7 @@ async function removeEventsForSelection() {
     console.log('Events to delete:', eventsToDelete);
 
     if (!eventsToDelete.length) {
-      jq('#cwu-remove-result').html('<div class="alert alert-info">No class events found for selected courses. Check browser console for event titles.</div>').show();
+      jq('#cwu-remove-result').html('<div class="alert alert-info">No course events found for selected courses. Check browser console for event titles.</div>').show();
       jq('#cwu-remove-events').prop('disabled', false);
       return;
     }
@@ -599,7 +577,7 @@ async function removeEventsForSelection() {
       await new Promise(r => setTimeout(r, 80));
     }
 
-    jq('#cwu-remove-result').html(`<div class="alert alert-success">✓ Removed ${deleted} / ${eventsToDelete.length} class events!</div>`).show();
+    jq('#cwu-remove-result').html(`<div class="alert alert-success">✓ Removed ${deleted} / ${eventsToDelete.length} course events!</div>`).show();
     jq('#cwu-remove-events').text('Done').prop('disabled', true);
 
     try { (window as any).jQuery('.calendar.fc').fullCalendar('refetchEvents'); } catch {}
