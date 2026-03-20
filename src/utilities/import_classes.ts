@@ -28,7 +28,7 @@ const MANAGE_DIALOG_HTML = `
           <label><input type="radio" name="cwu-pattern" value="custom"> Custom</label>
         </div>
       </div>
-      <div class="row" style="margin-bottom:8px">
+      <div id="cwu-days-row" class="row" style="margin-bottom:8px;display:none">
         <div class="col-md-12">
           <strong>Days</strong><br/>
           ${dayCheckbox('cwu-mon','Mon')}
@@ -142,6 +142,11 @@ export function openManageClassesDialog() {
 
   jq('input[name="cwu-pattern"]').on('change', function(this: HTMLInputElement){
     setPatternDefaults(this.value as any);
+    if (this.value === 'custom') {
+      jq('#cwu-days-row').show();
+    } else {
+      jq('#cwu-days-row').hide();
+    }
   });
 
   jq('#cwu-create-events').on('click', () => {
