@@ -128,7 +128,7 @@ function initDefaults() {
 }
 
 export function openManageClassesDialog() {
-  const dlg = startDialog('Manage classes', MANAGE_DIALOG_HTML);
+  const dlg = startDialog('Manage Courses', MANAGE_DIALOG_HTML);
   const jq = (window as any).jQuery || (window as any).$;
   initDefaults();
 

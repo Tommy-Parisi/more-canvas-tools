@@ -264,7 +264,7 @@ function injectImportClassesButton() {
     btn.id = 'cwu-import-classes';
     btn.className = 'btn';
     btn.type = 'button';
-    btn.textContent = 'Manage classes';
+    btn.textContent = 'Schedule Course Times';
 
     createLink.parentElement.insertBefore(btn, createLink);
 
